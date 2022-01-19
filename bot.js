@@ -1,12 +1,14 @@
+//constants
+const DATA_PATH = './data.json';
+const prefix = '!';
+const senPrefix = '>> ';
+const line = '-------------------';
+
 //modules
 const Discord = require('discord.js');
 const fs = require('fs')
 const { token } = require('../Bot/token.json');
-const { sticker } = require('./picture.json');
-
-//constants
-const prefix = '!';
-const senPrefix = '>> ';
+const DATA = require(DATA_PATH);
 
 //objects
 const client = new Discord.Client();
@@ -24,50 +26,52 @@ class Bot{
     async schedule(msg){
         var cmdList = msg.content.split(' ');
         if(cmdList.length === 1){
-            fs.readFile('./data.txt', 'utf8' , (err, data) => {
-                if (err) throw err;
-                if (data != ''){
-                    msg.channel.send('```\n------------------------------\n' + data + '------------------------------```').then(msg => {
-                        setTimeout(() => msg.delete(), 15000)
-                    });
-                } 
-                else{
-                    msg.channel.send('The schedule are currently empty, you can add your own schedule! <@' + msg.member.id + '>\n```!schedule add <Date> <Content>\n\ne.g. 2024-1-16 Harry\'s birthday```').then(msg => {
-                        setTimeout(() => msg.delete(), 10000)
-                    });
+            let schedule_list = DATA[msg.member.id]['schedule'];
+            if (schedule_list.length === 0){
+                msg.channel.send('The schedule are currently empty, you can add your own schedule <:doge:885145742203842632>! <@' + msg.member.id + '>\n```!schedule add <Date> <Content>\n\ne.g. 2024-1-16 Harry\'s birthday```').then(msg => {
+                    setTimeout(() => msg.delete(), 10000)
+                });
+            } 
+            else{
+                var output = '```\n';
+                output += line + msg.author.username + '\'s Schedule' + line + '\nDate      Content\n';
+                for(let i = 0; i < schedule_list.length; i++){
+                    output += schedule_list[i] + '\n';
                 }
-            });
+                output += '```' ;
+                msg.channel.send(output).then(msg => {
+                    setTimeout(() => msg.delete(), 10000)
+                });
+            }
         }
         else{
             var cmd = cmdList[1];
-            var writeData = fs.createWriteStream('./data.txt', {flags: 'a'});
+            let json = DATA, input;
             if(cmd === 'add'){
-                for(let i = 2; i < cmdList.length; i++){
-                    writeData.write(cmdList[i] + ' ');
-                }
-                msg.channel.send('Sucessfully added! <:happycheems:885145695693201458>').then(msg => {
-                    setTimeout(() => msg.delete(), 5000)
+                json[msg.member.id]['schedule'].push(msg.content.substring(14));
+                input = JSON.stringify(json);
+                msg.channel.send(`<@${msg.member.id}>'s schedule has been updated <:happycheems:885145695693201458>!`).then(msg => {
+                    setTimeout(() => msg.delete(), 3000)
                 });
-                writeData.end('\n');
-            }
-            else if(cmd === 'remove'){
-                
             }
             else if(cmd === 'clear'){
-                fs.writeFile('./data.txt', '', function(err){
-                    if(err) throw err;
-                    msg.channel.send('Schedule has been cleared!').then(msg => {
-                        setTimeout(() => msg.delete(), 10000)
-                    });
-                })
+                json[msg.member.id]['schedule'] = [];
+                input = JSON.stringify(json);
+                msg.channel.send(`<@${msg.member.id}>'s schedule has been cleared <:shycheems:885145732020043786>!`).then(msg => {
+                    setTimeout(() => msg.delete(), 3000)
+                });
             }
+            fs.writeFile(DATA_PATH, input, ()=>{
+                print(`${msg.author.username}'s schedule updated.`);
+            });
         } 
         msg.delete();
     }
     async joinChannel(msg){
-        if (msg.member.voice.channel !== null) {
+        if(msg.member.voice.channel !== null) {
             await msg.member.voice.channel.join();
-        } else {
+        } 
+        else{
             msg.channel.send('Please join the voice channel first! <@' + msg.member.id + '>');
         }
     }
@@ -81,18 +85,39 @@ client.on('ready', () => {
 });
 
 client.on('message', async (msg) => {
-    var cmd = msg.content.split(' ');
-    if(!msg.guild) 
-        return;
-    if(cmd[0] === prefix + 'hi'){
-        bot.hello(msg);
+    if(!msg.guild) return;
+    let json = DATA;
+    //construct discord users basic information
+    if(json[msg.member.id] == null){
+        json[msg.member.id] = {
+            username : msg.author.username,
+            schedule : [],
+            exp : 0,
+            level : 1,
+            tag : msg.author.tag
+        }
+        let jsonStr = JSON.stringify(json);
+        fs.writeFile(DATA_PATH, jsonStr, function(err){
+            if(err) throw err;
+        });
     }
-    else if(cmd[0] === prefix + 'schedule'){
-        bot.schedule(msg);
+
+    //bot command operations
+    if(msg.content.startsWith(prefix)){
+        var cmd = msg.content.split(' ')[0].substring(prefix.length);
+        if(cmd === 'hi'){
+            bot.hello(msg);
+        }
+        else if(cmd === 'schedule'){
+            bot.schedule(msg);
+        }
+        else if(cmd === 'join'){
+            bot.joinChannel(msg);
+        }
     }
-    else if(cmd[0] === prefix + 'join'){
-        bot.joinChannel(msg);
-    }
+    
+
+    //print out message on terminal
     print(msg.author.username + ': ' + msg.content);
 });
 
