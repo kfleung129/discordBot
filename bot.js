@@ -28,9 +28,7 @@ class Bot{
         if(cmdList.length === 1){
             let schedule_list = DATA[msg.member.id]['schedule'];
             if (schedule_list.length === 0){
-                msg.channel.send('The schedule are currently empty, you can add your own schedule <:doge:885145742203842632>! <@' + msg.member.id + '>\n```!schedule add <Date> <Content>\n\ne.g. 2024-1-16 Harry\'s birthday```').then(msg => {
-                    setTimeout(() => msg.delete(), 10000)
-                });
+                msg.channel.send('The schedule are currently empty, you can add your own schedule <:doge:885145742203842632>! <@' + msg.member.id + '>\n```!schedule add <Date> <Content>\n\ne.g. 2024-1-16 Someone\'s birthday```').then(delay(msg, duration));
             } 
             else{
                 var output = '```\n';
@@ -49,14 +47,14 @@ class Bot{
             let json = DATA, input;
             if(cmd === 'add'){
                 json[msg.member.id]['schedule'].push(msg.content.substring(14));
-                input = JSON.stringify(json);
+                input = JSON.stringify(json, null, 4);
                 msg.channel.send(`<@${msg.member.id}>'s schedule has been updated <:happycheems:885145695693201458>!`).then(msg => {
                     setTimeout(() => msg.delete(), 3000)
                 });
             }
             else if(cmd === 'clear'){
                 json[msg.member.id]['schedule'] = [];
-                input = JSON.stringify(json);
+                input = JSON.stringify(json, null, 4);
                 msg.channel.send(`<@${msg.member.id}>'s schedule has been cleared <:shycheems:885145732020043786>!`).then(msg => {
                     setTimeout(() => msg.delete(), 3000)
                 });
@@ -87,6 +85,7 @@ client.on('ready', () => {
 client.on('message', async (msg) => {
     if(!msg.guild) return;
     let json = DATA;
+    
     //construct discord users basic information
     if(json[msg.member.id] == null){
         json[msg.member.id] = {
@@ -96,7 +95,7 @@ client.on('message', async (msg) => {
             level : 1,
             tag : msg.author.tag
         }
-        let jsonStr = JSON.stringify(json);
+        let jsonStr = JSON.stringify(json, null, 4);
         fs.writeFile(DATA_PATH, jsonStr, function(err){
             if(err) throw err;
         });
@@ -116,7 +115,6 @@ client.on('message', async (msg) => {
         }
     }
     
-
     //print out message on terminal
     print(msg.author.username + ': ' + msg.content);
 });
