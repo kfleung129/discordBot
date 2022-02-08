@@ -20,23 +20,25 @@ function print(msg){
 
 //Bot
 class Bot{
-    async hello(msg){
+    hello(msg){
         msg.reply('Hello!');
     }
-    async schedule(msg){
+    schedule(msg){
         var cmdList = msg.content.split(' ');
         if(cmdList.length === 1){
             let schedule_list = DATA[msg.member.id]['schedule'];
             if (schedule_list.length === 0){
-                msg.channel.send('The schedule are currently empty, you can add your own schedule <:doge:885145742203842632>! <@' + msg.member.id + '>\n```!schedule add <Date> <Content>\n\ne.g. 2024-1-16 Someone\'s birthday```').then(delay(msg, duration));
-            } 
+                msg.channel.send('The schedule are currently empty, you can add your own schedule <:doge:885145742203842632>! <@' + msg.member.id + '>\n```!schedule add <Date> <Content>\n\ne.g. 2024-1-16 Someone\'s birthday```').then(msg => {
+                    setTimeout(() => msg.delete(), 10000)
+                });
+            }
             else{
                 var output = '```\n';
                 output += line + msg.author.username + '\'s Schedule' + line + '\nDate      Content\n';
                 for(let i = 0; i < schedule_list.length; i++){
                     output += schedule_list[i] + '\n';
                 }
-                output += '```' ;
+                output += '```';
                 msg.channel.send(output).then(msg => {
                     setTimeout(() => msg.delete(), 10000)
                 });
@@ -73,6 +75,12 @@ class Bot{
             msg.channel.send('Please join the voice channel first! <@' + msg.member.id + '>');
         }
     }
+    printTime(msg){
+        var date = new Date();
+        msg.channel.send(`Current time is ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()} :alarm_clock: `).then(msg => {
+            setTimeout(() => msg.delete(), 5000)
+        });
+    }
 }
 
 //Bot instance
@@ -95,12 +103,21 @@ client.on('message', async (msg) => {
             level : 1,
             tag : msg.author.tag
         }
-        let jsonStr = JSON.stringify(json, null, 4);
-        fs.writeFile(DATA_PATH, jsonStr, function(err){
-            if(err) throw err;
-        });
     }
-
+    else{
+        json[msg.member.id]["exp"] += 1;
+        if(json[msg.member.id]["exp"] % 5 === 0){
+            json[msg.member.id]["exp"] %= 5;
+            json[msg.member.id]["level"] += 1;
+            msg.channel.send(`<@${msg.member.id}> level up to ${json[msg.member.id]["level"]}!`).then(msg =>{
+                setTimeout(() => msg.delete(), 3000);
+            });
+        }
+    }
+    let jsonStr = JSON.stringify(json, null, 4);
+    fs.writeFile(DATA_PATH, jsonStr, function(err){
+        if(err) throw err;
+    });
     //bot command operations
     if(msg.content.startsWith(prefix)){
         var cmd = msg.content.split(' ')[0].substring(prefix.length);
@@ -112,6 +129,9 @@ client.on('message', async (msg) => {
         }
         else if(cmd === 'join'){
             bot.joinChannel(msg);
+        }
+        else if(cmd === 'time'){
+            bot.printTime(msg);
         }
     }
     

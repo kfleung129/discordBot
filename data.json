@@ -1,19 +1,32 @@
 {
     "231388060544270338": {
         "username": "MinaJan",
-        "schedule": [
-            "2022-1-29 My birthday",
-            "2022-1-24 Deadline of CV submission"
-        ],
-        "exp": 0,
-        "level": 1,
+        "schedule": [],
+        "exp": 1,
+        "level": 4,
         "tag": "MinaJan#8590"
     },
     "932889667903320085": {
         "username": "FOX Bot",
         "schedule": [],
-        "exp": 0,
+        "exp": 4,
         "level": 1,
         "tag": "FOX Bot#5602"
+    },
+    "342685649444274186": {
+        "username": "harryso",
+        "schedule": [],
+        "exp": 0,
+        "level": 1,
+        "tag": "harryso#4047"
+    },
+    "564421393043816448": {
+        "username": "DogeEveryWhere",
+        "schedule": [
+            "2002-08-16"
+        ],
+        "exp": 0,
+        "level": 1,
+        "tag": "DogeEveryWhere#6120"
     }
 }
